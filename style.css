@@ -4,6 +4,8 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
+
 :root {
   --rose:        #e8698a;
   --rose-light:  #f4a7bb;
@@ -24,7 +26,7 @@
   --ff-body:     'Jost', sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
   font-family: var(--ff-body);
@@ -68,8 +70,8 @@ body {
   pointer-events: none;
   z-index: 0;
 }
-#particle-canvas { z-index: 0; }
-#finale-canvas { position: absolute; z-index: 0; }
+#particle-canvas { z-index: 3; }
+#finale-canvas { position: absolute; z-index: 0; opacity: 0.4; }
 
 /* ===========================
    INTRO SCENE
@@ -244,25 +246,11 @@ body {
    =========================== */
 #main-site {
   position: relative;
-  background: linear-gradient(180deg,
-    #fff0f5 0%,
-    #fce8ef 20%,
-    #fff5f0 40%,
-    #fdeaf4 60%,
-    #fff0f8 80%,
-    #fce4ec 100%
-  );
+  background: transparent;
   min-height: 100vh;
 }
 #main-site::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at 20% 20%, rgba(255,182,193,0.3) 0%, transparent 55%),
-              radial-gradient(ellipse at 80% 80%, rgba(255,210,230,0.25) 0%, transparent 55%),
-              radial-gradient(ellipse at 50% 50%, rgba(255,240,248,0.15) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 /* ===========================
@@ -272,7 +260,7 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 4;
   overflow: hidden;
 }
 .falling-petal {
@@ -294,16 +282,17 @@ body {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 .orb {
   position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,182,193,0.35), transparent 70%);
+  border-radius: 0;
   animation: float-orb ease-in-out infinite;
 }
 @keyframes float-orb {
-  0%,100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-40px) scale(1.08); }
+  0%,100% { transform: translateY(0) rotate(var(--orb-rot, 0deg)) scale(1); }
+  50%      { transform: translateY(-35px) rotate(calc(var(--orb-rot, 0deg) + 8deg)) scale(1.04); }
 }
 
 /* ===========================
@@ -438,16 +427,9 @@ section {
   50%      { transform: translateY(8px); }
 }
 
-/* Background flowers */
-.hero-bg-flowers { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-.bg-flower {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,182,193,0.25), transparent 60%);
-}
-.bf1 { width: 400px; height: 400px; top: -100px; left: -100px; animation: float-orb 8s 0s ease-in-out infinite; }
-.bf2 { width: 300px; height: 300px; top: 40%; right: -80px; animation: float-orb 10s 2s ease-in-out infinite; }
-.bf3 { width: 250px; height: 250px; bottom: -50px; left: 30%; animation: float-orb 7s 4s ease-in-out infinite; }
+/* Background flowers — removed, using canvas petals only */
+.hero-bg-flowers { display: none; }
+.bg-flower { display: none; }
 
 /* ===========================
    MESSAGE SECTION
@@ -682,7 +664,7 @@ section {
   margin: 0 auto;
 }
 .gallery-card {
-  aspect-ratio: 4/3;
+  aspect-ratio: 1/1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -728,17 +710,25 @@ section {
    =========================== */
 #finale {
   min-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, #3d0f25 0%, #1a0510 50%, #3a0d23 100%);
+  background: transparent;
   padding: 100px 20px;
 }
 .finale-inner {
   position: relative;
   z-index: 2;
+  width: 100%;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
 }
 .finale-flowers {
   font-size: 2.5rem;
@@ -758,6 +748,8 @@ section {
   color: var(--rose-light);
   margin-bottom: 16px;
   opacity: 0.85;
+  text-align: center;
+  display: block;
 }
 .finale-title {
   font-family: var(--ff-display);
@@ -766,6 +758,7 @@ section {
   color: var(--white);
   line-height: 1.15;
   margin-bottom: 30px;
+  text-align: center;
 }
 .finale-title em { color: var(--rose-light); font-style: italic; }
 .finale-body {
@@ -836,4 +829,223 @@ footer {
   section { padding: 70px 16px; }
   .hero-title { font-size: 2.6rem; }
   .section-title { font-size: 2rem; }
+}
+
+/* ===========================
+   GIFT BOX — REAL 3D UPGRADE
+   =========================== */
+
+/* Perspective context on wrapper */
+#gift-wrapper {
+  perspective: 900px;
+  perspective-origin: 50% 40%;
+}
+
+#gift-container {
+  transform-style: preserve-3d;
+}
+
+/* 3D floating animation — gentle, not excessive */
+@keyframes gift-float-3d {
+  0%   { transform: translateY(0px) rotateX(4deg) rotateY(-3deg); }
+  33%  { transform: translateY(-10px) rotateX(2deg) rotateY(3deg); }
+  66%  { transform: translateY(-6px) rotateX(5deg) rotateY(-2deg); }
+  100% { transform: translateY(0px) rotateX(4deg) rotateY(-3deg); }
+}
+
+#gift-box {
+  transform-style: preserve-3d;
+  animation: gift-float-3d 5s ease-in-out infinite;
+  /* Cinematic drop shadow that responds to 3D angle */
+  filter:
+    drop-shadow(0 22px 18px rgba(0,0,0,0.55))
+    drop-shadow(0 6px 8px rgba(0,0,0,0.4))
+    drop-shadow(0 0 28px rgba(255,120,160,0.45));
+  transition: filter 0.4s ease;
+}
+
+#gift-container:hover #gift-box {
+  filter:
+    drop-shadow(0 28px 22px rgba(0,0,0,0.6))
+    drop-shadow(0 8px 10px rgba(0,0,0,0.45))
+    drop-shadow(0 0 45px rgba(255,140,180,0.75));
+}
+
+/* Lid — 3D transform-style + cinematic lighting */
+.gift-lid {
+  transform-style: preserve-3d;
+  /* Subtle top-light bevel */
+  background: linear-gradient(
+    165deg,
+    #f28aa8 0%,
+    #e8698a 25%,
+    #c0304a 65%,
+    #a02040 100%
+  ) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.35),
+    inset 0 -2px 0 rgba(0,0,0,0.25);
+}
+
+/* Lid right-side face — 3D illusion panel */
+.gift-lid::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 4px;
+  width: 10px;
+  height: calc(100% - 4px);
+  background: linear-gradient(180deg, #8a1a2e, #6a0f22);
+  transform-origin: left center;
+  transform: rotateY(90deg) translateZ(0);
+  border-radius: 0 4px 4px 0;
+  box-shadow: inset -2px 0 4px rgba(0,0,0,0.3);
+}
+
+/* Lid bottom-face shadow panel */
+.gift-lid::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 4px;
+  width: calc(100% - 8px);
+  height: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.08));
+  transform: rotateX(-90deg);
+  transform-origin: top center;
+  border-radius: 0 0 4px 4px;
+  filter: blur(1px);
+}
+
+/* Box body — cinematic lighting */
+.gift-body {
+  transform-style: preserve-3d;
+  background: linear-gradient(
+    165deg,
+    #e05678 0%,
+    #d44a6a 30%,
+    #b03050 70%,
+    #8a1a35 100%
+  ) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.18),
+    inset 0 -3px 0 rgba(0,0,0,0.3),
+    inset 2px 0 0 rgba(255,255,255,0.08);
+}
+
+/* Body right-side face */
+.gift-body::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(180deg, #7a1228 0%, #5a0c1e 100%);
+  border-radius: 0 0 4px 0;
+  box-shadow: inset -2px 0 4px rgba(0,0,0,0.4);
+}
+
+/* Body bottom face — ground contact shadow */
+.gift-body::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 6px;
+  width: calc(100% - 12px);
+  height: 10px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), transparent);
+  border-radius: 0 0 8px 8px;
+  filter: blur(2px);
+}
+
+/* Ribbons — golden with depth */
+.ribbon-h, .ribbon-body-h {
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.5),
+    inset 0 -2px 0 rgba(0,0,0,0.2),
+    0 0 8px rgba(247,200,115,0.4);
+}
+.ribbon-v, .ribbon-body-v {
+  box-shadow:
+    inset 2px 0 0 rgba(255,255,255,0.4),
+    inset -2px 0 0 rgba(0,0,0,0.15),
+    0 0 6px rgba(247,200,115,0.35);
+}
+
+/* Bow — richer, more dimensional */
+.bow-left, .bow-right {
+  background: linear-gradient(135deg, #ffe066 0%, #f7c430 40%, #d4920a 80%, #b87800 100%) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.5),
+    inset 0 -2px 3px rgba(0,0,0,0.3),
+    0 2px 8px rgba(180,120,0,0.4);
+}
+.bow-center {
+  background: radial-gradient(circle at 35% 35%, #ffe87a, #f0ab10) !important;
+  box-shadow:
+    0 0 10px rgba(247,200,115,0.7),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+}
+
+/* Ground reflection/shadow ellipse */
+#gift-container::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 18px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Lid fly — preserve 3D depth during open animation */
+@keyframes lid-fly {
+  0%   { transform: translateY(0) rotateX(0deg) rotateZ(0deg) scale(1); opacity: 1; }
+  35%  { transform: translateY(-100px) rotateX(-15deg) rotateZ(-20deg) scale(1.05); opacity: 1; }
+  70%  { transform: translateY(-220px) rotateX(-30deg) rotateZ(-40deg) scale(0.7); opacity: 0.7; }
+  100% { transform: translateY(-340px) rotateX(-45deg) rotateZ(-55deg) scale(0.3); opacity: 0; }
+}
+
+
+/* ===========================
+   GALLERY IMAGE — img src BULLETPROOF FIX
+   =========================== */
+
+/* Override the flex layout — grid handles sizing now */
+.gallery-card {
+  display: grid !important;
+  grid-template-rows: 1fr auto;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  min-height: 220px;
+}
+
+/* Image fills the top grid row */
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  object-fit: cover;
+  display: block;
+  grid-row: 1;
+  border-radius: inherit;
+}
+
+/* Caption sits below the image in grid row 2 */
+.gallery-card .gallery-caption {
+  grid-row: 2;
+  position: relative !important;
+  bottom: auto !important;
+  background: rgba(0,0,0,0.45);
+  color: rgba(255,225,235,0.95) !important;
+  padding: 10px 16px;
+  font-family: var(--ff-script);
+  font-size: 1rem;
+  text-align: center;
 }
