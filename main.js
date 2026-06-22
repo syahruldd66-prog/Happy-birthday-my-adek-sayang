@@ -168,7 +168,10 @@ function initSmoothScroll() {
    ======================================================== */
 function initMemoryLaneButton() {
   const revealBtn = document.getElementById("reveal-memories-btn");
-  if (!revealBtn) return;
+  if (!revealBtn || revealBtn.hasAttribute('data-initialized')) return;
+
+  // Beri penanda agar tidak terjadi double event listener
+  revealBtn.setAttribute('data-initialized', 'true');
 
   revealBtn.addEventListener("click", function (e) {
     e.preventDefault();
@@ -182,19 +185,23 @@ function initMemoryLaneButton() {
     // 2. Ambil semua kartu galeri
     const mediaCards = document.querySelectorAll(".gallery-grid .gallery-card");
     
-    // 3. Munculkan satu per satu dengan delay staggered
+    // 3. Munculkan satu per satu dengan delay staggered menggunakan inline style (kebal override)
     mediaCards.forEach((card, index) => {
       setTimeout(() => {
+        card.style.opacity = "1";
+        card.style.transform = "translateY(0) scale(1)";
+        card.style.pointerEvents = "auto";
         card.classList.add("show-photo");
         
         // Putar video otomatis jika ada
-        if (card.classList.contains("video-card")) {
-          const video = card.querySelector(".gallery-video");
-          if (video && typeof video.play === "function") {
-            video.play().catch(err => console.log("Autoplay handled."));
+        const video = card.querySelector(".gallery-video");
+        if (video) {
+          video.muted = true; // Mute agar diijinkan autoplay oleh browser mobile
+          if (typeof video.play === "function") {
+            video.play().catch(err => console.log("Autoplay video aman."));
           }
         }
-      }, 500 + (index * 450));
+      }, 300 + (index * 400));
     });
 
     // 4. Sembunyikan tombolnya secara perlahan
@@ -209,6 +216,9 @@ function initMemoryLaneButton() {
    GARDEN FLOWER INTERACTION & HOVER EFFECTS
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
+  // Jalankan pemicu cadangan langsung di sini (antisipasi jika initMainSite telat dieksekusi)
+  initMemoryLaneButton();
+
   // Garden flowers — create sparkle on hover
   document.querySelectorAll('.garden-flower').forEach(flower => {
     flower.addEventListener('mouseenter', () => {
@@ -239,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.gallery-card').forEach(card => {
     card.addEventListener('mousemove', e => {
       // Amankan agar efek tilt tidak menimpa opacity sebelum tombol diklik
-      if (!card.classList.contains('show-photo')) return;
+      if (!card.classList.contains('show-photo') && card.style.opacity !== "1") return;
 
       const rect = card.getBoundingClientRect();
       const cx   = (e.clientX - rect.left) / rect.width  - 0.5;
@@ -247,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
       card.style.transform = `perspective(600px) rotateY(${cx * 10}deg) rotateX(${-cy * 10}deg) scale(1.04)`;
     });
     card.addEventListener('mouseleave', () => {
-      if (!card.classList.contains('show-photo')) return;
+      if (!card.classList.contains('show-photo') && card.style.opacity !== "1") return;
       card.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) scale(1)';
       card.style.transition = 'transform 0.5s ease, box-shadow 0.4s ease';
     });
@@ -266,3 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// Pemicu akhir: pastikan tombol siap dipakai meskipun siklus window telah selesai luar biasa lambat
+window.addEventListener('load', initMemoryLaneButton);
