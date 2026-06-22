@@ -1,39 +1,64 @@
 /* =============================================
-   INTRO.JS — Gift box opening scene (Locked version)
+   INTRO.JS — Gift box opening scene (Strict Countdown Mode)
    ============================================= */
 
 let introStarted = false;
-// Set target ke tanggal 14 Agustus 2026 jam 00:00:00 (Waktu Lokal)
+// Kunci target: Tepat tanggal 14 Agustus 2026 jam 00:00:00 waktu lokal device
 const TARGET_DATE = new Date('August 14, 2026 00:00:00').getTime();
 
 // Start intro particles immediately
 document.addEventListener('DOMContentLoaded', () => {
   window.initIntroParticles();
   spawnIntroSparkles();
+  
+  // Proteksi awal: Sembunyikan element main site secara mutlak biar gak bocor
+  const mainSite = document.getElementById('main-site');
+  if (mainSite) {
+    mainSite.style.setProperty('display', 'none', 'important');
+  }
+
   updateHintStatus();
 });
 
-// Fungsi untuk mengecek apakah sudah masuk waktunya atau belum
+// Cek status apakah waktu saat ini masih terkunci
 function isLocked() {
   const now = new Date().getTime();
   return now < TARGET_DATE;
 }
 
-// Mengubah teks hint otomatis jika masih terkunci
+// Logika update teks status petunjuk dan perhitungan mundur real-time
 function updateHintStatus() {
   const hint = document.querySelector('.gift-hint');
-  if (!hint) return;
+  const timerElement = document.getElementById('countdown-timer');
+  if (!hint || !timerElement) return;
 
   if (isLocked()) {
     hint.innerHTML = '🔒 Locked until August 14, 00:00 ✨';
-    
-    // Cek berkala setiap detik, jika sudah lewat jalankan fungsi normal
+
     const timer = setInterval(() => {
-      if (!isLocked()) {
-        hint.innerHTML = '🎂 tap to open your gift ✨';
+      const now = new Date().getTime();
+      const distance = TARGET_DATE - now;
+
+      // Kalkulasi Hari, Jam, Menit, dan Detik
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      // Render ke layar HTML
+      timerElement.innerHTML = `${days} Hari  ${hours} Jam  ${minutes} Menit  ${seconds} Detik`;
+
+      // Jika waktu hitung mundur selesai berjalan (menyentuh jam 00:00)
+      if (distance < 0) {
         clearInterval(timer);
+        timerElement.style.display = 'none'; 
+        hint.innerHTML = '🎂 tap to open your gift ✨';
       }
     }, 1000);
+  } else {
+    // Jika user membuka web saat waktu target sudah lewat
+    timerElement.style.display = 'none';
+    hint.innerHTML = '🎂 tap to open your gift ✨';
   }
 }
 
@@ -63,22 +88,24 @@ function spawnIntroSparkles() {
 }
 
 function openGift() {
-  // Jaga-jaga kalau di-tap sebelum tanggal 14 Agustus jam 00:00
+  // BLOKIR AKSES TOTAL JIKA BELUM JAMNYA
   if (isLocked()) {
     const hint = document.querySelector('.gift-hint');
+    const box = document.getElementById('gift-box');
+    
+    if (box) {
+      box.style.animation = 'none';
+      box.offsetHeight; // trigger reflow
+      box.style.animation = 'gift-shake 0.4s ease';
+    }
+
     if (hint) {
-      hint.style.animation = 'none';
-      // Trik force reflow biar animasi shake text-nya ke-trigger lagi
-      hint.offsetHeight; 
-      hint.style.animation = 'gift-shake 0.4s ease';
       hint.innerHTML = '🔒 Sabar ya, kadonya belum boleh dibuka... 🌸';
-      
-      // Kembalikan teks asli setelah 2 detik
       setTimeout(() => {
         if (isLocked()) hint.innerHTML = '🔒 Locked until August 14, 00:00 ✨';
-      }, 2500);
+      }, 2000);
     }
-    return;
+    return; // Potong proses eksekusi di sini agar tidak terbuka
   }
 
   if (introStarted) return;
@@ -196,6 +223,9 @@ function transitionToMain() {
   const overlay = document.getElementById('intro-overlay');
   const intro   = document.getElementById('intro-scene');
   const main    = document.getElementById('main-site');
+
+  // Lepaskan inline-style pengunci display:none
+  if (main) main.style.display = '';
 
   // Fade white overlay in
   overlay.classList.add('fade-in');
