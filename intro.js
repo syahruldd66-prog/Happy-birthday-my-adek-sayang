@@ -3,12 +3,56 @@
    ============================================= */
 
 let introStarted = false;
+let isLocked = true; // Flag status kado terkunci
 
 // Start intro particles immediately
 document.addEventListener('DOMContentLoaded', () => {
   window.initIntroParticles();
   spawnIntroSparkles();
+  checkTimeLock(); // Jalankan sistem pengunci waktu
 });
+
+// Fungsi untuk memeriksa dan mengunci kado sampai 14 Agustus 00:00
+function checkTimeLock() {
+  const container = document.getElementById('gift-container');
+  const hint = container ? container.querySelector('.gift-hint') : null;
+  
+  if (!container || !hint) return;
+
+  // Set target waktu: 14 Agustus tahun berjalan jam 00:00:00
+  const currentYear = new Date().getFullYear();
+  const targetDate = new Date(currentYear, 7, 14, 0, 0, 0); // Bulan 7 adalah Agustus (0-indexed)
+
+  const timerInterval = setInterval(() => {
+    const now = new Date();
+    const timeLeft = targetDate - now;
+
+    if (timeLeft > 0) {
+      // Masih terkunci
+      isLocked = true;
+      container.style.cursor = 'not-allowed';
+      
+      // Hitung sisa waktu untuk display hitung mundur (opsional agar estetik)
+      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+      // Tampilkan countdown berformat rapi di teks petunjuk
+      if (days > 0) {
+        hint.innerHTML = `🔒 Terkunci. Terbuka dalam ${days}hari ${hours}jam lagi ✨`;
+      } else {
+        hint.innerHTML = `🔒 Terkunci. Terbuka dalam ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ✨`;
+      }
+    } else {
+      // Waktu sudah lewat atau tepat 14 Agustus 00:00
+      isLocked = false;
+      container.style.cursor = 'pointer';
+      hint.innerHTML = '🎂 tap to open your gift ✨';
+      clearInterval(timerInterval); // Hentikan interval jika sudah terbuka
+    }
+  }, 1000);
+}
 
 function spawnIntroSparkles() {
   const scene = document.getElementById('intro-scene');
@@ -36,7 +80,8 @@ function spawnIntroSparkles() {
 }
 
 function openGift() {
-  if (introStarted) return;
+  // Cegah kado dibuka jika intro sudah jalan ATAU website masih berstatus terkunci
+  if (introStarted || isLocked) return;
   introStarted = true;
 
   const container = document.getElementById('gift-container');
