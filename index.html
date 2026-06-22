@@ -12,12 +12,15 @@
   <link rel="stylesheet" href="css/dark-romantic.css" />
   <link rel="stylesheet" href="css/performance.css" />
   <link rel="stylesheet" href="css/gpu-optimization.css" />
+  <!-- Device tier detection: runs synchronously so later scripts can read window.DeviceTier -->
   <script src="js/device-tier-system.js"></script>
 </head>
 <body>
 
+  <!-- ===== GLOBAL CINEMATIC BACKGROUND (fixed, z=-10, one unified layer) ===== -->
   <div id="global-bg-layer" aria-hidden="true"></div>
 
+  <!-- ===== INTRO SCENE ===== -->
   <div id="intro-scene">
     <canvas id="particle-canvas-intro"></canvas>
     <div id="gift-wrapper">
@@ -45,12 +48,15 @@
     <div id="intro-overlay"></div>
   </div>
 
+  <!-- Fixed ambient layers — live at body level so they cover ALL sections -->
   <div class="cinematic-vignette"></div>
   <canvas id="particle-canvas"></canvas>
   <div id="falling-petals"></div>
 
+  <!-- ===== MAIN WEBSITE ===== -->
   <div id="main-site" class="hidden">
 
+    <!-- ===== HERO ===== -->
     <section id="hero">
       <div class="hero-content">
         <p class="hero-eyebrow">a birthday serenade in bloom</p>
@@ -77,8 +83,14 @@
           <div class="scroll-arrow">↓</div>
         </a>
       </div>
+      
+        
+        
+        
+      </div>
     </section>
 
+    <!-- ===== MESSAGE ===== -->
     <section id="message">
       <div class="section-inner">
         <div class="message-card glass">
@@ -89,7 +101,9 @@
           </div>
           <p class="msg-label">from the bottom of my heart</p>
           <h2 class="msg-title">Today is the day<br/><em>the world became</em><br/>more beautiful.</h2>
-          <p class="msg-body">Hari kelahiranmu adalah hal terbaik yang pernah terjadi di dunia ini — dan bagiku. Setiap tahun yang bisa kuhabiskan bersamamu adalah hadiah yang tak pernah kuanggap sepele. Kamu membuat hari-hari biasa terasa seperti keajaiban dan hari-hari ajaib terasa seperti mimpi..</p>
+          <p class="msg-body">Hari kelahiranmu adalah hal terbaik yang
+pernah terjadi di dunia ini — dan bagiku.
+Setiap tahun yang bisa kuhabiskan bersamamu adalah hadiah yang tak pernah kuanggap sepele. Kamu membuat hari-hari biasa terasa seperti keajaiban dan hari-hari ajaib terasa seperti mimpi..</p>
           <p class="msg-body">Bunga-bunga ini adalah tanda kecil dari kasih sayang yang luar biasa yang kupunya untukmu. Tidak ada buket bunga di dunia ini yang cukup besar, tidak ada lagu yang cukup manis, tidak ada puisi yang cukup panjang — tetapi ketahuilah bahwa setiap hal-hal itu adalah milikmu. Selamat ulang tahun, cintaku. 🎂</p>
           <div class="msg-signature">— Yours, always & forever 🌹</div>
         </div>
@@ -103,6 +117,7 @@
       </div>
     </section>
 
+    <!-- ===== REASONS ===== -->
     <section id="reasons">
       <div class="section-inner">
         <p class="section-eyebrow">a thousand birthday wishes</p>
@@ -118,6 +133,7 @@
       </div>
     </section>
 
+    <!-- ===== GARDEN ===== -->
     <section id="garden">
       <div class="garden-bg"></div>
       <div class="section-inner">
@@ -136,9 +152,14 @@
       </div>
     </section>
 
+    <!-- ===== MEMORIES ===== -->
     <section id="memories">
       <div class="section-inner">
+<<<<<<< HEAD
+        <p class="section-eyebrow">captured in time</p>
+=======
         <p class="section-eyebrow">celebrating you</p>
+>>>>>>> eef0d1c (update)
         <h2 class="section-title">Your Beautiful<br/><em>Pictures</em></h2>
         <div class="gallery-grid">
           <div class="gallery-card glass gc1"><img src="assets/images/img1.jpeg" class="gallery-img" alt="Photo 1"><div class="gallery-caption">you</div></div>
@@ -149,6 +170,7 @@
       </div>
     </section>
 
+    <!-- ===== FINALE ===== -->
     <section id="finale">
       <canvas id="finale-canvas"></canvas>
       <div class="finale-inner">
@@ -158,11 +180,6 @@
         <p class="finale-eyebrow">happy birthday, my love 🎂</p>
         <h2 class="finale-title">You Are Loved<br/><em>More Than You Know</em></h2>
         <p class="finale-body">Di hari indah yang sepenuhnya milikmu ini — aku ingin kamu tahu bahwa mencintaimu adalah petualangan terbesar dalam hidupku. Setiap tahun bersamamu adalah hadiah yang sangat kuhargai. Setiap tawa, setiap momen, setiap detak jantung yang tenang di sisimu. Ini untukmu, hari ini dan setiap hari setelahnya. Selamat ulang tahun, cintaku. 🌸</p>
-        
-        <button id="reveal-memories-btn">
-          ✨ Open Our Memory Lane ✨
-        </button>
-
         <div class="finale-heart"><div class="heart-pulse">💗</div></div>
         <p class="finale-sig">Made with endless love, just for you 🎂🌸</p>
       </div>
@@ -171,6 +188,7 @@
     <footer><p>🎂 crafted with love & birthday petals 🌸</p></footer>
   </div>
 
+  <!-- Scripts — tier already set in <head>; engine files load in dependency order -->
   <script src="js/render-loop.js"></script>
   <script src="js/particle-pool.js"></script>
   <script src="js/performance-manager.js"></script>
