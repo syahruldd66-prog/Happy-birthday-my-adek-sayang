@@ -1,57 +1,40 @@
 /* =============================================
-   INTRO.JS — Gift box opening scene
+   INTRO.JS — Gift box opening scene (Locked version)
    ============================================= */
 
 let introStarted = false;
-let isLocked = true; // Flag status kado terkunci
+// Set target ke tanggal 14 Agustus 2026 jam 00:00:00 (Waktu Lokal)
+const TARGET_DATE = new Date('August 14, 2026 00:00:00').getTime();
 
 // Start intro particles immediately
 document.addEventListener('DOMContentLoaded', () => {
   window.initIntroParticles();
   spawnIntroSparkles();
-  checkTimeLock(); // Jalankan sistem pengunci waktu
+  updateHintStatus();
 });
 
-// Fungsi untuk memeriksa dan mengunci kado sampai 14 Agustus 00:00
-function checkTimeLock() {
-  const container = document.getElementById('gift-container');
-  const hint = container ? container.querySelector('.gift-hint') : null;
-  
-  if (!container || !hint) return;
+// Fungsi untuk mengecek apakah sudah masuk waktunya atau belum
+function isLocked() {
+  const now = new Date().getTime();
+  return now < TARGET_DATE;
+}
 
-  // Set target waktu: 14 Agustus tahun berjalan jam 00:00:00
-  const currentYear = new Date().getFullYear();
-  const targetDate = new Date(currentYear, 7, 14, 0, 0, 0); // Bulan 7 adalah Agustus (0-indexed)
+// Mengubah teks hint otomatis jika masih terkunci
+function updateHintStatus() {
+  const hint = document.querySelector('.gift-hint');
+  if (!hint) return;
 
-  const timerInterval = setInterval(() => {
-    const now = new Date();
-    const timeLeft = targetDate - now;
-
-    if (timeLeft > 0) {
-      // Masih terkunci
-      isLocked = true;
-      container.style.cursor = 'not-allowed';
-      
-      // Hitung sisa waktu untuk display hitung mundur (opsional agar estetik)
-      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-      // Tampilkan countdown berformat rapi di teks petunjuk
-      if (days > 0) {
-        hint.innerHTML = `🔒 Terkunci. Terbuka dalam ${days}hari ${hours}jam lagi ✨`;
-      } else {
-        hint.innerHTML = `🔒 Terkunci. Terbuka dalam ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ✨`;
+  if (isLocked()) {
+    hint.innerHTML = '🔒 Locked until August 14, 00:00 ✨';
+    
+    // Cek berkala setiap detik, jika sudah lewat jalankan fungsi normal
+    const timer = setInterval(() => {
+      if (!isLocked()) {
+        hint.innerHTML = '🎂 tap to open your gift ✨';
+        clearInterval(timer);
       }
-    } else {
-      // Waktu sudah lewat atau tepat 14 Agustus 00:00
-      isLocked = false;
-      container.style.cursor = 'pointer';
-      hint.innerHTML = '🎂 tap to open your gift ✨';
-      clearInterval(timerInterval); // Hentikan interval jika sudah terbuka
-    }
-  }, 1000);
+    }, 1000);
+  }
 }
 
 function spawnIntroSparkles() {
@@ -80,8 +63,25 @@ function spawnIntroSparkles() {
 }
 
 function openGift() {
-  // Cegah kado dibuka jika intro sudah jalan ATAU website masih berstatus terkunci
-  if (introStarted || isLocked) return;
+  // Jaga-jaga kalau di-tap sebelum tanggal 14 Agustus jam 00:00
+  if (isLocked()) {
+    const hint = document.querySelector('.gift-hint');
+    if (hint) {
+      hint.style.animation = 'none';
+      // Trik force reflow biar animasi shake text-nya ke-trigger lagi
+      hint.offsetHeight; 
+      hint.style.animation = 'gift-shake 0.4s ease';
+      hint.innerHTML = '🔒 Sabar ya, kadonya belum boleh dibuka... 🌸';
+      
+      // Kembalikan teks asli setelah 2 detik
+      setTimeout(() => {
+        if (isLocked()) hint.innerHTML = '🔒 Locked until August 14, 00:00 ✨';
+      }, 2500);
+    }
+    return;
+  }
+
+  if (introStarted) return;
   introStarted = true;
 
   const container = document.getElementById('gift-container');
