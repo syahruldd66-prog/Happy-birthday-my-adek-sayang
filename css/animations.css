@@ -138,3 +138,23 @@
   0%   { opacity: 1; transform: scale(1) translateY(0); }
   100% { opacity: 0; transform: scale(0.5) translateY(-30px); }
 }
+
+/* ========================================================
+   TAMBAHAN: LOGIKA TRANSISI DAN ANIMASI MEMORY LANE (FOTO & VIDEO)
+   ======================================================== */
+
+/* Membuat semua kartu galeri transparan & sedikit turun ke bawah di awal */
+.gallery-grid .gallery-card {
+  opacity: 0;
+  transform: translateY(40px) scale(0.96);
+  transition: opacity 1.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              transform 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none; /* Mencegah sentuhan sebelum tombol memicu kemunculannya */
+}
+
+/* Class pemicu dari JavaScript untuk memunculkan media dengan smooth */
+.gallery-grid .gallery-card.show-photo {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
