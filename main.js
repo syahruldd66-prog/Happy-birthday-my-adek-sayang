@@ -8,6 +8,7 @@ window.initMainSite = function () {
   initScrollReveal();
   initCursorTrail();
   initSmoothScroll();
+  initMemoryLaneButton(); // Jalankan fungsi tombol memories saat site aktif
 };
 
 /* ===========================
@@ -162,8 +163,50 @@ function initSmoothScroll() {
   });
 }
 
+/* ========================================================
+   LOGIKA UTAMA PEMUNCULAN MEMORY LANE (FOTO & VIDEO)
+   ======================================================== */
+function initMemoryLaneButton() {
+  const revealBtn = document.getElementById("reveal-memories-btn");
+  if (!revealBtn) return;
+
+  revealBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // 1. Scroll ke atas menuju section memories
+    const memoriesSection = document.getElementById("memories");
+    if (memoriesSection) {
+      memoriesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // 2. Ambil semua kartu galeri
+    const mediaCards = document.querySelectorAll(".gallery-grid .gallery-card");
+    
+    // 3. Munculkan satu per satu dengan delay staggered
+    mediaCards.forEach((card, index) => {
+      setTimeout(() => {
+        card.classList.add("show-photo");
+        
+        // Putar video otomatis jika ada
+        if (card.classList.contains("video-card")) {
+          const video = card.querySelector(".gallery-video");
+          if (video && typeof video.play === "function") {
+            video.play().catch(err => console.log("Autoplay handled."));
+          }
+        }
+      }, 500 + (index * 450));
+    });
+
+    // 4. Sembunyikan tombolnya secara perlahan
+    revealBtn.style.opacity = "0";
+    revealBtn.style.transform = "translateY(15px)";
+    revealBtn.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+    setTimeout(() => { revealBtn.style.display = "none"; }, 400);
+  });
+}
+
 /* ===========================
-   GARDEN FLOWER INTERACTION
+   GARDEN FLOWER INTERACTION & HOVER EFFECTS
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
   // Garden flowers — create sparkle on hover
@@ -192,16 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Gallery cards — parallax tilt
+  // Gallery cards — parallax tilt (HANYA BERJALAN JIKA FOTO SUDAH MUNCUL)
   document.querySelectorAll('.gallery-card').forEach(card => {
     card.addEventListener('mousemove', e => {
+      // Amankan agar efek tilt tidak menimpa opacity sebelum tombol diklik
+      if (!card.classList.contains('show-photo')) return;
+
       const rect = card.getBoundingClientRect();
       const cx   = (e.clientX - rect.left) / rect.width  - 0.5;
       const cy   = (e.clientY - rect.top)  / rect.height - 0.5;
       card.style.transform = `perspective(600px) rotateY(${cx * 10}deg) rotateX(${-cy * 10}deg) scale(1.04)`;
     });
     card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
+      if (!card.classList.contains('show-photo')) return;
+      card.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) scale(1)';
       card.style.transition = 'transform 0.5s ease, box-shadow 0.4s ease';
     });
   });
